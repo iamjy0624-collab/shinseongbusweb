@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# 에디터 / OS
+.vscode/
+.idea/
+.DS_Store
+~$*.xlsx
+
+# 원천 엑셀은 올리지 않아도 됩니다(웹앱은 docs/data.js 만 사용).
+# 올리고 싶다면 아래 줄을 지우세요.
+data/*.xlsx

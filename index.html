@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>411-1 신성여고 하교 만차 예측 &amp; 우회 안내 AI</title>
+  <meta name="description" content="제주 411-1번 버스 신성여고 하교 시간대 만차·무정차 위험을 LSTM으로 예측하고 상류 정류장 우회 탑승을 안내합니다.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🚌%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero">
+    <h1>🚌 제주 411-1번 버스 신성여고 하교 만차 예측 &amp; 상류 정류장 우회 안내 AI 앱</h1>
+    <p id="lead" class="lead"></p>
+  </header>
+
+  <div id="fatal" class="fatal" hidden></div>
+
+  <main id="app">
+    <nav class="tabs" role="tablist" aria-label="화면 선택">
+      <button class="tab active" role="tab" aria-selected="true" data-tab="sim">1. 하교 만차 예측 &amp; 우회 시뮬레이터</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="model">2. AI 모델 성능 비교(LSTM vs 선형회귀)</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="insight">3. 통합 데이터 시각화 &amp; 인사이트</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="data">4. 전처리 검증 &amp; 데이터 다운로드</button>
+    </nav>
+
+    <!-- 탭 1: 시뮬레이터 -->
+    <section id="tab-sim" class="panel" role="tabpanel">
+      <h2>🎯 실시간 하교 혼잡도 예측 및 상류 정류장 우회 의사결정 시뮬레이터</h2>
+      <div class="grid-2">
+        <div class="card controls">
+          <label for="in-date">① 평일 기준 날짜 선택 (실제 데이터 연동)</label>
+          <select id="in-date"></select>
+
+          <label for="in-hour">② 시간대 선택 (16시~22시)</label>
+          <select id="in-hour"></select>
+
+          <label for="in-board">③ 신성여고 해당 시간대 예상 승차 인원 (명) <output id="out-board" for="in-board"></output></label>
+          <input id="in-board" type="range" min="0" max="35" step="1" value="0">
+
+          <label for="in-alight">④ 신성여고 해당 시간대 예상 하차 인원 (명) <output id="out-alight" for="in-alight"></output></label>
+          <input id="in-alight" type="range" min="0" max="15" step="1" value="0">
+
+          <label for="in-cum">⑤ 하교 시간대 누적 대기 승객 수 (명) <output id="out-cum" for="in-cum"></output></label>
+          <input id="in-cum" type="range" min="0" max="45" step="1" value="0">
+
+          <div class="btn-row">
+            <button id="btn-sim" class="btn primary" type="button">🚀 LSTM 만차 위험도 예측 실행</button>
+            <button id="btn-reset" class="btn" type="button">↺ 실제 데이터 값으로 되돌리기</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div id="gauge" class="chart-gauge"></div>
+          <div id="alert" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <h3>📍 병목 정류장(57번 신성여고) vs 우회 권장 정류장(56번 영평초 체육관) 비교</h3>
+      <div id="stop-table"></div>
+    </section>
+
+    <!-- 탭 2: 모델 비교 -->
+    <section id="tab-model" class="panel" role="tabpanel" hidden>
+      <h2>🧠 AI 기법 선정 타당성 및 정량적 성능 검증 (PyTorch LSTM vs 선형 회귀)</h2>
+      <p id="model-intro" class="note"></p>
+      <h3>모델별 예측 오차(MAE, RMSE) 정량 비교표</h3>
+      <div id="metrics-table"></div>
+      <div id="loss-chart" class="chart"></div>
+      <div id="cmp-chart" class="chart"></div>
+    </section>
+
+    <!-- 탭 3: 시각화 & 인사이트 -->
+    <section id="tab-insight" class="panel" role="tabpanel" hidden>
+      <h2>📊 3개 데이터 통합 시각화 및 핵심 분석 인사이트</h2>
+      <div id="chart1" class="chart"></div>
+      <blockquote id="insight1"></blockquote>
+      <div id="chart2" class="chart tall"></div>
+      <blockquote id="insight2"></blockquote>
+      <div id="chart3" class="chart"></div>
+      <blockquote id="insight3"></blockquote>
+    </section>
+
+    <!-- 탭 4: 전처리 검증 & 다운로드 -->
+    <section id="tab-data" class="panel" role="tabpanel" hidden>
+      <h2>🔍 데이터 전처리·통합 검증 리포트 및 최종 데이터셋</h2>
+      <h3>원본 3개 시트 전처리(자르기) 및 병합(합치기) 검증 리포트</h3>
+      <div id="prep-table"></div>
+      <h3>핵심 파생 변수 수식 및 정량 산출 결과</h3>
+      <div id="kpi-table"></div>
+      <h3 id="daily-title"></h3>
+      <div id="daily-table"></div>
+      <p><button id="btn-csv" class="btn primary" type="button">📥 최종 통합 전처리 데이터 CSV 다운로드</button></p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p id="footer-note" class="muted"></p>
+    <p class="muted">혼잡 위험지수는 승차·누적 승차·차내 재차 등으로 계산한 규칙 기반 점수이며, 실제 관측된 만차 여부가 아닙니다.</p>
+  </footer>
+
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+  <script src="data.js"></script>
+  <script src="model.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
